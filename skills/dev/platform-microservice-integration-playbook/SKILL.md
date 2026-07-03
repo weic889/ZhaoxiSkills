@@ -250,7 +250,7 @@ description: Use when building or integrating a shell-based enterprise applicati
 
 ## 快速检查表
 
-需要逐项执行时，直接配合同目录的 [integration-verification-checklist.md](./integration-verification-checklist.md) 使用。
+需要逐项执行时，直接配合同目录的 [integration-verification-checklist.md](./references/integration-verification-checklist.md) 使用。
 
 ### 接入前
 
