@@ -1,20 +1,29 @@
 # zhaoxisSkills
 
-这个目录用于沉淀可复用的技能包，结构参考常见的技能仓组织方式。
+这个仓库现在默认作为“项目问题汇总 + AI 开发前必读入口”使用。
 
-## 当前已收录
+## 开发前先读
 
-- `skills/pcapp-backend`
-- `skills/bluexii-components2`
-- `skills/pc-frontend`
-- `skills/app-frontend`
-- `skills/enterprise-portal-frontend`
-- `skills/enterprise-portal-backend`
+AI 在开始开发、联调、重构、提测前，默认先读：
 
-## 使用建议
+- `PROJECT_ISSUES.md`
 
-1. 新项目开始接入前，先读对应技能的 `SKILL.md`
-2. 联调和提测时，再配合 `references/` 里的检查清单逐项验证
-3. 遇到新的高频坑，再把共性经验补回这个目录
+这个文件负责收口：
 
-如果任务涉及 `bluexii-components2` 公共仓接入、公共 UI、壳层、多语言或 token，同步先读 `skills/bluexii-components2/SKILL.md`。
+1. 项目里反复出现的高频问题
+2. 前后端协同的硬规则
+3. 宿主、路由、组织、语言控制权相关约束
+4. 提测前阻断项
+
+## 详细材料
+
+在读完 `PROJECT_ISSUES.md` 后，再按任务类型继续阅读：
+
+- `skills/bluexii-components2/SKILL.md`
+- `skills/pc-frontend/SKILL.md`
+- `skills/app-frontend/SKILL.md`
+- `skills/enterprise-portal-frontend/SKILL.md`
+- `skills/enterprise-portal-backend/SKILL.md`
+- `skills/pcapp-backend/SKILL.md`
+
+联调和提测时，再配合各自 `references/` 下的检查清单逐项验证。
