@@ -5,6 +5,7 @@
 ## 当前已收录
 
 - `skills/pcapp-backend`
+- `skills/bluexii-components2`
 - `skills/pc-frontend`
 - `skills/app-frontend`
 - `skills/enterprise-portal-frontend`
@@ -15,3 +16,5 @@
 1. 新项目开始接入前，先读对应技能的 `SKILL.md`
 2. 联调和提测时，再配合 `references/` 里的检查清单逐项验证
 3. 遇到新的高频坑，再把共性经验补回这个目录
+
+如果任务涉及 `bluexii-components2` 公共仓接入、公共 UI、壳层、多语言或 token，同步先读 `skills/bluexii-components2/SKILL.md`。
