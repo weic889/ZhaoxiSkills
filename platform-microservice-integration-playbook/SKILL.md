@@ -1,19 +1,19 @@
 ---
-name: device-assets-integration-playbook
-description: Use when building or integrating a park-scoped enterprise application with a shell platform, especially when the work spans frontend, backend, deployment, and browser-based QA across same-origin shell pages or cross-origin iframe micro apps.
+name: platform-microservice-integration-playbook
+description: Use when building or integrating a shell-based enterprise application with backend microservices, especially when the work spans frontend, backend, deployment, environment config, browser-based QA, and organization-scoped data across same-origin shell pages or cross-origin iframe micro apps.
 ---
 
-# 资产类应用集成作战手册
+# 基座应用微服务集成作战手册
 
 ## 概述
 
-这个技能用于避免“接口通了但页面不对”“切园区后数据没隔离”“线上 504 但本地没问题”这类反复联调问题。
+这个技能用于避免“接口通了但页面不对”“切组织后数据没隔离”“线上 504 但本地没问题”“前端、后端、网关、配置中心各说各话”这类反复联调问题。
 
 核心原则只有四条：
 
-1. 先判断应用运行容器，再决定园区上下文该从哪里取。
-2. 左侧树、列表、新增、编辑必须共用同一套园区和位置模型。
-3. 后端保存和查询都要落组织范围字段，不能只靠前端筛选。
+1. 先判断应用运行容器，再决定组织上下文该从哪里取。
+2. 前端页面、平台导航、后端接口、网关路径、配置来源必须被当成一套系统来联调。
+3. 保存和查询都要落组织范围字段，不能只靠前端筛选。
 4. 每次改动都要用浏览器网络面板做线上真验证，而不是只看本地代码。
 
 ## 何时使用
@@ -21,8 +21,9 @@ description: Use when building or integrating a park-scoped enterprise applicati
 适用于这些场景：
 
 - 新接一个壳平台内的 PC 应用、H5 应用、微前端应用
-- 业务数据需要按园区、项目、组织隔离
-- 页面既有左侧位置树，又有右侧资产列表、详情、新增、编辑
+- 前端、后端、网关、配置中心、数据库需要一起联调
+- 业务数据需要按园区、项目、组织、租户或企业隔离
+- 页面存在导航树、筛选区、列表、详情、新增、编辑、导出等典型后台能力
 - 前端和后端仓库分别独立，需要一起联调
 - 页面运行在壳页、iframe、微前端 SDK 三种模式之一
 - 线上表现和本地表现不一致
@@ -44,7 +45,7 @@ description: Use when building or integrating a park-scoped enterprise applicati
 - 应用静态资源可能来自别的域名，但脚本执行上下文仍在壳页
 - 可以直接读取壳页 `localStorage`
 
-这种模式下，当前园区通常直接来自壳页存储。
+这种模式下，当前组织通常直接来自壳页存储。
 
 ### 跨域 iframe 微应用
 
@@ -54,7 +55,7 @@ description: Use when building or integrating a park-scoped enterprise applicati
 - iframe 内拿不到壳页的 `localStorage`
 - 只靠 token 里的 `tenantId` 容易拿到旧园区
 
-这种模式下，当前园区必须优先来自宿主 runtime、SDK 数据或 `postMessage`。
+这种模式下，当前组织必须优先来自宿主 runtime、SDK 数据或 `postMessage`。
 
 ### 微前端 SDK 注入
 
@@ -65,7 +66,7 @@ description: Use when building or integrating a park-scoped enterprise applicati
 
 这种模式下，前端必须监听宿主上下文变化，并触发页面重新取数。
 
-## 园区隔离规则
+## 组织隔离规则
 
 ### 前端取组织 ID 的优先级
 
@@ -85,44 +86,42 @@ description: Use when building or integrating a park-scoped enterprise applicati
 
 经验结论：
 
-- token 只适合作为兜底，不适合作为当前园区真值
-- 跨域 iframe 中，如果没有宿主 runtime 兜底，切园区后极易继续看到旧数据
+- token 只适合作为兜底，不适合作为当前组织真值
+- 跨域 iframe 中，如果没有宿主 runtime 兜底，切组织后极易继续看到旧数据
 
-### 园区切换后的页面行为
+### 组织切换后的页面行为
 
-切园区后至少要重新拉这几类数据：
+切组织后至少要重新拉这几类数据：
 
-- 左侧树
+- 左侧树或导航树
 - 列表
 - 统计卡片
-- 新增/编辑弹窗中的位置选项
+- 新增/编辑弹窗中的组织相关选项
 
-如果当前页面内部缓存比较重，最稳的做法是用园区 ID 作为关键 key，强制重挂关键布局或页面根节点。
+如果当前页面内部缓存比较重，最稳的做法是用组织 ID 作为关键 key，强制重挂关键布局或页面根节点。
 
-## 左树与位置模型
+## 导航树与业务模型
 
-资产类页面最常见的错误，是左树和资产表不是一套来源。
+基座类后台页面最常见的错误，是左树、筛选区、列表、详情不是一套来源。
 
 ### 正确做法
 
-- 左侧树优先从平台统一位置接口获取
-- 常见来源是类似 `/enterprise/v1/buildings/tree`
-- 树节点字段要统一映射为：
-  - `projectId`
-  - `buildingId` 或 `buildingUniqueId`
-  - `floorId` 或楼层标识
-  - `siteId` 或场地标识
+- 左侧树优先从平台统一组织/位置/资源接口获取
+- 常见来源可能是组织树、园区树、楼宇树、资源树、菜单树
+- 树节点字段要统一映射为业务真正使用的筛选字段
+- 列表、新增、编辑、详情共用同一份节点语义，而不是各自猜字段
 
 ### 不要这样做
 
-- 左树由资产系统自己造一套独立表，但新增编辑又写平台位置数据
-- 列表按项目过滤，新增只保存场地 ID，不保存项目 ID
-- 编辑页读取旧位置模型，列表页读取新位置模型
+- 左树由业务系统自己造一套独立表，但新增编辑又写平台组织数据
+- 列表按组织过滤，但新增只保存子节点 ID，不保存组织范围字段
+- 编辑页读取旧模型，列表页读取新模型
+- 导航树来自 A 系统，列表查询条件来自 B 系统，但两边没有统一映射
 
 ### 必须统一的三个地方
 
 1. 树接口来源
-2. 保存时的位置字段落库
+2. 保存时的组织/位置字段落库
 3. 查询时的过滤字段
 
 ## 后端保存规则
@@ -132,25 +131,25 @@ description: Use when building or integrating a park-scoped enterprise applicati
 至少要确认这些字段在保存链路里被赋值：
 
 - `projectId`
-- `buildingId`
-- `floorId`
-- `siteId`
+- `organizationId`
+- 业务主维度字段，例如 `buildingId`、`departmentId`、`siteId`
+- 需要回填筛选的辅助字段
 
-如果只有 `locationNodeId`，而没有明确的 `projectId`，后面按园区过滤时通常会出问题。
+如果只有叶子节点 ID，而没有明确的组织范围字段，后面按组织过滤时通常会出问题。
 
 ## 后端查询规则
 
-列表查询不能只依赖前端传过来的位置节点。
+列表查询不能只依赖前端传过来的节点 ID。
 
 至少要满足下面之一：
 
-1. 直接按 `project_id = 当前园区`
-2. 兼容历史数据时，再补一层 legacy 位置节点关联过滤
+1. 直接按组织范围字段过滤，例如 `project_id`、`organization_id`、`tenant_id`
+2. 兼容历史数据时，再补一层 legacy 节点关联过滤
 
 推荐做法：
 
-- 新数据走显式 `project_id`
-- 老数据临时兼容 `location_node_id -> project` 的映射链
+- 新数据走显式组织范围字段
+- 老数据临时兼容 `node_id -> organization` 的映射链
 - 兼容逻辑明确标注为过渡方案，后续要清理
 
 ## 配置与数据库
@@ -171,13 +170,13 @@ description: Use when building or integrating a park-scoped enterprise applicati
 - `application.yml` 被错误改成依赖别的配置中心内容，导致线上连错库
 - 表不存在，但现象只表现为 504 或空白页
 
-### 如果表不存在
+### 如果表或配置项不存在
 
 先确认三件事：
 
 1. 当前环境应该连接哪套库
-2. 建表应由脚本完成还是手工补齐
-3. 代码当前读取的到底是不是这套库
+2. 建表或补配置应由脚本完成还是手工补齐
+3. 代码当前读取的到底是不是这套配置和这套库
 
 ## 浏览器联调方法
 
@@ -185,28 +184,28 @@ description: Use when building or integrating a park-scoped enterprise applicati
 
 ### 每次必查
 
-- 当前壳页显示的园区名称
+- 当前壳页显示的组织名称
 - 业务请求头里的 `x-organization-id`
-- 左树接口的请求体或查询参数
-- 列表接口返回的数据是否属于当前园区
+- 树接口的请求体或查询参数
+- 列表接口返回的数据是否属于当前组织
 
 ### 判定规则
 
-如果壳页显示园区 A，但接口请求头还是园区 B：
+如果壳页显示组织 A，但接口请求头还是组织 B：
 
 - 问题在前端上下文传递，不在后端过滤
 
-如果请求头已经是园区 A，但返回的仍是园区 B 数据：
+如果请求头已经是组织 A，但返回的仍是组织 B 数据：
 
 - 问题在后端保存字段或查询过滤
 
-如果树已经切到园区 A，列表仍显示园区 B：
+如果树已经切到组织 A，列表仍显示组织 B：
 
 - 问题通常在页面缓存、组件未重挂、依赖未重新请求
 
 ## 菜单与路由
 
-资产类应用接到壳平台后，常见另一个问题是菜单选中态丢失。
+基座应用接到壳平台后，常见另一个问题是菜单选中态丢失。
 
 ### 处理原则
 
@@ -220,17 +219,18 @@ description: Use when building or integrating a park-scoped enterprise applicati
 - 是否走了特殊重定向逻辑
 - 是否在切页时触发了整棵导航树重新构建
 
-## 新增、编辑、列表必须同查
+## 页面能力必须同查
 
 不要只修列表页。
 
-每次改“园区隔离”相关逻辑，都要一起验证：
+每次改“组织隔离”相关逻辑，都要一起验证：
 
 1. 列表是否只显示当前园区数据
-2. 新增时默认位置是否来自当前园区树
-3. 保存后是否落当前园区 `projectId`
-4. 编辑已有数据时是否还能正确回填位置
-5. 切换园区后新增和编辑的选项是否立即变化
+2. 新增时默认组织或默认节点是否来自当前上下文
+3. 保存后是否落当前组织范围字段
+4. 编辑已有数据时是否还能正确回填
+5. 切换组织后新增和编辑的选项是否立即变化
+6. 导出、详情、统计卡片是否也跟着切
 
 ## 推送与部署节奏
 
@@ -239,7 +239,7 @@ description: Use when building or integrating a park-scoped enterprise applicati
 1. 改完先本地最小验证
 2. 只提交本次相关文件，避免把用户未完成改动一起推上去
 3. 推送远端分支
-4. 等 CI / 镜像 / webhook 部署完成
+4. 等 CI / 镜像 / webhook / 发布流程完成
 5. 再用线上浏览器做真验证
 
 不要这样做：
@@ -255,30 +255,30 @@ description: Use when building or integrating a park-scoped enterprise applicati
 ### 接入前
 
 - [ ] 明确应用运行容器：壳页直出、iframe、还是 SDK 微前端
-- [ ] 明确当前园区真值来源
-- [ ] 明确左树是否来自平台统一接口
-- [ ] 明确新增/编辑需要落哪些位置字段
+- [ ] 明确当前组织真值来源
+- [ ] 明确导航树是否来自平台统一接口
+- [ ] 明确新增/编辑需要落哪些组织和业务字段
 
 ### 前端完成后
 
 - [ ] 请求头 `x-organization-id` 来自宿主 runtime 优先
-- [ ] 园区切换后页面会重新取树和列表
+- [ ] 组织切换后页面会重新取树和列表
 - [ ] 菜单选中态不会因为内部跳转丢失
 
 ### 后端完成后
 
-- [ ] 新增保存 `projectId/buildingId/floorId/siteId`
-- [ ] 编辑不会覆盖错园区
-- [ ] 列表查询按 `project_id` 过滤
+- [ ] 新增保存组织范围字段和关键业务字段
+- [ ] 编辑不会覆盖错组织
+- [ ] 列表查询按组织范围字段过滤
 - [ ] 历史数据兼容策略清晰
 
 ### 线上验证
 
-- [ ] 壳页园区名称和请求头园区一致
-- [ ] 左树数据属于当前园区
-- [ ] 列表数据属于当前园区
-- [ ] 新增后刷新仍留在当前园区
-- [ ] 切换到另一个园区后旧数据不会残留
+- [ ] 壳页组织名称和请求头组织一致
+- [ ] 左树数据属于当前组织
+- [ ] 列表数据属于当前组织
+- [ ] 新增后刷新仍留在当前组织
+- [ ] 切换到另一个组织后旧数据不会残留
 
 ## 常见错误
 
@@ -288,19 +288,19 @@ description: Use when building or integrating a park-scoped enterprise applicati
 
 - 接口 200 只能说明服务可达，不能说明组织隔离正确
 
-### 错误 2：把 token 当当前园区
+### 错误 2：把 token 当当前组织
 
 现实：
 
 - token 更像登录身份，不一定代表用户此刻在壳页切到的园区
 
-### 错误 3：只修列表，不修新增编辑
+### 错误 3：只修列表，不修新增编辑和详情
 
 现实：
 
 - 新增不落 `projectId`，后面列表永远会继续穿透旧园区
 
-### 错误 4：自己维护一套位置树
+### 错误 4：自己维护一套脱离平台的业务树
 
 现实：
 
@@ -316,8 +316,8 @@ description: Use when building or integrating a park-scoped enterprise applicati
 
 遵循这套技能后，通常能提前避开这些高频返工：
 
-- 园区切换后旧数据残留
-- 左树和列表不一致
+- 组织切换后旧数据残留
+- 导航树和列表不一致
 - 新增成功但列表查不出来
 - 线上 504 原因长期不明
 - 菜单选中态异常导致壳页体验不一致
